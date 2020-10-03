@@ -1,0 +1,2 @@
+# Taller_4_Procesamiento_imag_Vision
+Segmentación por color y transformaciones geométricas
