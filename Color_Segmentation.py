@@ -17,6 +17,7 @@ def recreate_image(centers, labels, rows, cols):
             label_idx += 1
     return image_clusters
 
+
 def clustering(image,metodo):
     if metodo == 'kmeans':
         model = KMeans(n_clusters=n_colors, random_state=0).fit(image_array_sample)
@@ -46,13 +47,15 @@ print("Fitting model on a small sub-sample of the data")
 t0 = time()
 image_array_sample = shuffle(image_array, random_state=0)[:10000]
 
-n_colors = 6
+#n_colors = 6
 
 plt.figure(1)
 plt.clf()
 plt.axis('off')
 plt.title('Original image')
 plt.imshow(image)
+
+sumas = []
 
 for n_colors in range(1,11):
 
@@ -68,8 +71,13 @@ for n_colors in range(1,11):
         centers = model.cluster_centers_
     print("done in %0.3fs." % (time() - t0))
 
-    # Display all results, alongside original image
+    suma_parcial = 0
+    for index in range(0,image_array.shape[0]):
+        suma_parcial += abs(image_array[index] - centers[labels[index]])
 
+    sumas.append(suma_parcial)
+
+    # Display all results, alongside original image
     plt.figure(2)
     plt.clf()
     plt.axis('off')
@@ -77,3 +85,6 @@ for n_colors in range(1,11):
     plt.imshow(recreate_image(centers, labels, rows, cols))
 
     plt.show()
+
+plt.plot([1,2,3,4,5,6,7,8,9,10],sumas)
+plt.show()
