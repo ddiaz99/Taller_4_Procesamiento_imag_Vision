@@ -73,7 +73,8 @@ for n_colors in range(1,11):
 
     suma_parcial = 0
     for index in range(0,image_array.shape[0]):
-        suma_parcial += abs(image_array[index] - centers[labels[index]])
+
+        suma_parcial +=  np.linalg.norm((image_array[index] - centers[labels[index]]), axis=0)
 
     sumas.append(suma_parcial)
 
