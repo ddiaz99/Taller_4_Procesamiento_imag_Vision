@@ -2,15 +2,11 @@ import numpy as np
 import os
 import cv2
 
-mouse_coordinates = list()
-number_points = 0
-
 def click_event(event, x, y, flags, params):
     global number_points
     if number_points < 3:
         if event == cv2.EVENT_RBUTTONDOWN:
             mouse_coordinates.append([x, y])
-            #print(mouse_coordinates)
             number_points += 1
     else:
         number_points = 0
@@ -66,7 +62,6 @@ def estimate_similarity(pts1,M_affine):
 
     return M_similarity
 
-
 def calc_error(pts1,M_similarity,pts2):
     pts = np.append(pts1.transpose(), np.array([[1, 1, 1]]), axis=0)
     pts_transform = M_similarity.dot(pts)
@@ -76,6 +71,8 @@ def calc_error(pts1,M_similarity,pts2):
     print('Error calculated = ',error)
 
 if __name__ == '__main__':
+    mouse_coordinates = list()
+    number_points = 0
 
     path1 = r'C:\Users\di-di\OneDrive\Escritorio\imagenes_vision'#input('ingrese path: ')
     image_name1 = r'lena.png'#input('image name: ')
@@ -107,4 +104,3 @@ if __name__ == '__main__':
     calc_error(pts1, M_similarity, pts2)
 
     cv2.waitKey(0)
-

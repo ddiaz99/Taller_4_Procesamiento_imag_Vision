@@ -38,12 +38,12 @@ def clustering(image,metodo):
     return labels,centers
 
 def calc_distance():
-    suma_parcial = 0
+    partial_sum = 0
     for index in range(0, image_array.shape[0]):
-        suma_parcial += np.linalg.norm((image_array[index] - centers[labels[index]]), axis=0)
+        partial_sum += np.linalg.norm((image_array[index] - centers[labels[index]]), axis=0)
 
-    sumas.append(suma_parcial)
-    return  sumas
+    sums.append(partial_sum)
+    return  sums
 
 if __name__ == '__main__':
 
@@ -69,18 +69,18 @@ if __name__ == '__main__':
     plt.imshow(image)
     plt.show()
 
-    sumas = []
+    sums = []
 
     for n_colors in range(1,11):
 
         labels,centers = clustering(image, metodo)
         # Get labels for all points
 
-        sumas = calc_distance()
+        sums = calc_distance()
 
         recreate_image(centers, labels, rows, cols)
 
-    plt.plot(list(range(1,11)),sumas)
+    plt.plot(list(range(1,11)),sums)
     plt.title('Sum of intra-cluster distances vs Number of colors')
     plt.xlabel('Number of colors')
     plt.ylabel('Sum of intra-cluster distances')
