@@ -10,22 +10,39 @@ def click_event(event, x, y, flags, params):
     if number_points < 3:
         if event == cv2.EVENT_RBUTTONDOWN:
             mouse_coordinates.append([x, y])
-            print(mouse_coordinates)
+            #print(mouse_coordinates)
             number_points += 1
     else:
         number_points = 0
         cv2.destroyAllWindows()
 
-def estimate_similarity(point1_homogeneous,point2_homogeneous,new_point1,new_point2):
-    x1 = point1_homogeneous[0][0]
-    y1 = point1_homogeneous[1][0]
-    x2 = point2_homogeneous[0][0]
-    y2 = point2_homogeneous[1][0]
+def get_points():
+    for i in range(0,len(images)):
+        cv2.imshow(windowsNames[i],images[i])
+        cv2.setMouseCallback(windowsNames[i], click_event)
+        cv2.waitKey(0)
 
-    x1_prime = new_point1[0][0]
-    y1_prime = new_point1[1][0]
-    x2_prime = new_point2[0][0]
-    y2_prime = new_point2[1][0]
+    pts1 = np.float32(mouse_coordinates[0:3]) #lena
+    pts2 = np.float32(mouse_coordinates[3:6]) #lena_warped
+
+    return pts1,pts2
+
+def estimate_similarity(pts1,M_affine):
+
+    point1_homogeneous = np.append(pts1[0], np.array([1]), axis=0)
+    point2_homogeneous = np.append(pts1[1], np.array([1]), axis=0)
+    new_point1 = M_affine.dot(point1_homogeneous)
+    new_point2 = M_affine.dot(point2_homogeneous)
+
+    x1 = point1_homogeneous[0]
+    y1 = point1_homogeneous[1]
+    x2 = point2_homogeneous[0]
+    y2 = point2_homogeneous[1]
+
+    x1_prime = new_point1[0]
+    y1_prime = new_point1[1]
+    x2_prime = new_point2[0]
+    y2_prime = new_point2[1]
 
     b = np.array([x1_prime,y1_prime,x2_prime,y2_prime])
 
@@ -44,13 +61,19 @@ def estimate_similarity(point1_homogeneous,point2_homogeneous,new_point1,new_poi
     tx = A_3[2]
     ty = A_3[3]
 
-    similarity = np.array([[s * np.cos(theta), -np.sin(theta), tx],
+    M_similarity = np.array([[s * np.cos(theta), -np.sin(theta), tx],
                         [np.sin(theta), s * np.cos(theta), ty]])
 
-    image_similarity = cv2.warpAffine(lena, similarity, lena.shape[:2])
-    cv2.imshow('similarity',image_similarity)
+    return M_similarity
 
-    print(similarity)
+
+def calc_error(pts1,M_similarity,pts2):
+    pts = np.append(pts1.transpose(), np.array([[1, 1, 1]]), axis=0)
+    pts_transform = M_similarity.dot(pts)
+    pts_transform = pts_transform.transpose()
+
+    error = np.linalg.norm(pts_transform - pts2, axis=1)
+    print('Error calculated = ',error)
 
 if __name__ == '__main__':
 
@@ -66,43 +89,22 @@ if __name__ == '__main__':
     windowsNames = ['lena','lena_warped']
     images = [lena,lena_warped]
 
-
-    for i in range(0,len(images)):
-        cv2.imshow(windowsNames[i],images[i])
-        cv2.setMouseCallback(windowsNames[i], click_event)
-        cv2.waitKey(0)
-
-    pts1 = np.float32(mouse_coordinates[0:3]) #lena
-    pts2 = np.float32(mouse_coordinates[3:6]) #lena_warped
+    pts1,pts2 = get_points()
 
     M_affine = cv2.getAffineTransform(pts1, pts2)
 
+    print('Affine transformation: ')
     print(M_affine)
 
-    x1 = pts1[0][0]
-    y1 = pts1[0][1]
-
-    point1_homogeneous = [[x1],[y1],[1.]]
-
-    x2 = pts1[1][0]
-    y2 = pts1[1][1]
-
-    point2_homogeneous = [[x2],[y2],[1.]]
-
-    new_point1 = M_affine.dot(point1_homogeneous)
-    new_point2 = M_affine.dot(point2_homogeneous)
-
-
-    print(new_point1)
-    print(new_point2)
-
-    print(new_point1[0][0])
-    print(new_point2[1][0])
-
     image_affine = cv2.warpAffine(lena, M_affine, lena.shape[:2])
-
     cv2.imshow("Affine", image_affine)
 
-    estimate_similarity(point1_homogeneous,point2_homogeneous,new_point1,new_point2)
+
+    M_similarity = estimate_similarity(pts1,M_affine)
+    image_similarity = cv2.warpAffine(lena, M_similarity, lena.shape[:2])
+    cv2.imshow('similarity', image_similarity)
+
+    calc_error(pts1, M_similarity, pts2)
 
     cv2.waitKey(0)
+
