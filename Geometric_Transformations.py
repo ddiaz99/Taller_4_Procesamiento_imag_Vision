@@ -27,22 +27,29 @@ def estimate_similarity(pts1,M_affine):
 
     point1_homogeneous = np.append(pts1[0], np.array([1]), axis=0)
     point2_homogeneous = np.append(pts1[1], np.array([1]), axis=0)
+    point3_homogeneous = np.append(pts1[2], np.array([1]), axis=0)
     new_point1 = M_affine.dot(point1_homogeneous)
     new_point2 = M_affine.dot(point2_homogeneous)
+    new_point3 = M_affine.dot(point3_homogeneous)
 
     x1 = point1_homogeneous[0]
     y1 = point1_homogeneous[1]
     x2 = point2_homogeneous[0]
     y2 = point2_homogeneous[1]
+    x3 = point3_homogeneous[0]
+    y3 = point3_homogeneous[1]
+
 
     x1_prime = new_point1[0]
     y1_prime = new_point1[1]
     x2_prime = new_point2[0]
     y2_prime = new_point2[1]
+    x3_prime = new_point3[0]
+    y3_prime = new_point3[1]
 
-    b = np.array([x1_prime,y1_prime,x2_prime,y2_prime])
+    b = np.array([x1_prime,y1_prime,x2_prime,y2_prime,x3_prime,y3_prime])
 
-    matrix1 = np.array([[x1,-y1,1,0],[y1,x1,0,1],[x2,-y2,1,0],[y2,x2,0,1]])
+    matrix1 = np.array([[x1,y1,1,0,0,0],[0,0,0,x1,y1,1],[x2,y2,1,0,0,0],[0,0,0,x2,y2,1],[x3,y3,1,0,0,0],[0,0,0,x3,y3,1]])
     matrix2 = matrix1.T
 
     A_1 = np.linalg.inv(matrix2.dot(matrix1))
@@ -51,14 +58,24 @@ def estimate_similarity(pts1,M_affine):
 
     a = A_3[0]
     b = A_3[1]
+    d = A_3[3]
+    e = A_3[4]
 
-    theta = np.arctan(b/a)
-    s = a/np.cos(theta)
+    theta = np.arctan(-b/e)
+    s1 = a/np.cos(theta)
+    s2 = e/np.cos(theta)
     tx = A_3[2]
-    ty = A_3[3]
+    ty = A_3[5]
 
-    M_similarity = np.array([[s * np.cos(theta), -np.sin(theta), tx],
-                        [np.sin(theta), s * np.cos(theta), ty]])
+    print('aproximacion parametros de matriz de similitud')
+    print(f'theta1 = {theta}')
+    print(f's1 = {s1}')
+    print(f's2 = {s2}')
+    print(f'tx = {tx}')
+    print(f'ty = {ty}')
+
+    M_similarity = np.array([[a, b, tx],
+                        [d, e, ty]])
 
     return M_similarity
 
